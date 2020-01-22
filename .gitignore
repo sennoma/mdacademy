@@ -1,0 +1,10 @@
+.idea
+__pycache__/
+*.sql
+venv*
+bot_details.txt
+conversationbot
+*.log
+tmp/
+.DS_Store
+time_chart_bot/

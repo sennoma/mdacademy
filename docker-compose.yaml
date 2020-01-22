@@ -1,0 +1,16 @@
+version: "3.4"
+
+services:
+  mdacademy_db:
+    image: postgres
+    restart: always
+    deploy:
+      replicas: 1
+    ports:
+      - 5436:5432
+    environment:
+      POSTGRES_PASSWORD: mdacademy
+      POSTGRES_USER: mdacademy
+      POSTGRES_DB: mdacademy-db
+    volumes:
+      - ./mdacademy-pgdata:/var/lib/postgresql/mdacademy-data:delegated
