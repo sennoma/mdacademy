@@ -9,6 +9,7 @@ Bot has some constraints for subscribers. Limit os subscriptions per person, lim
 Admin has the ability to remove some dates from schedule.
 
 # Technical info
-Bot uses python-telegram-bot library to communicate to telegram and handle conversations,
+Bot uses python-telegram-bot library to communicate to telegram and handle conversations, 
+djando as an admin for managing schedules, users and groups,
 postgresql for storing users and classes schedule and also has the ability to connect to dialogflow
 to handle some smalltalk.

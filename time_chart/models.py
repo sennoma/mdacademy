@@ -3,7 +3,7 @@ from django.db import models
 
 class Group(models.Model):
     name = models.CharField(max_length=80, unique=True)
-    active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
     allow_signup = models.BooleanField(default=False)
 
     def __str__(self):
@@ -26,6 +26,7 @@ class User(models.Model):
 
 class Place(models.Model):
     name = models.CharField(max_length=80, unique=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -45,7 +46,8 @@ class TimeSlot(models.Model):
     time = models.TimeField()
     open = models.BooleanField(default=False)
 
-    people = models.ManyToManyField(User)
+    people = models.ManyToManyField(User, blank=True)
+    limit = models.PositiveSmallIntegerField(default=5)
 
     def __str__(self):
         return f"{self.date} {self.time} ({self.place})"

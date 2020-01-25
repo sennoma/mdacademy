@@ -4,6 +4,7 @@ import os
 BOT_TOKEN = os.environ['BOT_TOKEN']
 
 DATE_FORMAT = "%Y-%m-%d"
+TIME_FORMAT = "%H:%M"
 
 # Conversation states
 (ASK_PLACE_STATE,
