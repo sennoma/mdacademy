@@ -111,8 +111,14 @@ def ask_place(update, context):
                          reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
 
-    subs = TimeSlot.objects.filter(people__pk=usr.pk)
-    if user_id not in LIST_OF_ADMINS and len(subs) > 1:
+    today = dt.date.today()
+    if today.weekday() == 6:
+        start_of_the_week = today + dt.timedelta(days=1)
+    else:
+        start_of_the_week = today - dt.timedelta(days=today.weekday())
+    subs = TimeSlot.objects.filter(people__pk=usr.pk,
+                                   date__gte=start_of_the_week)
+    if user_id not in LIST_OF_ADMINS and len(subs) > usr.group.week_limit:
         bot.send_message(chat_id=update.message.chat_id,
                          text="У тебя уже есть две записи на эту неделю. Сначала отмени другую запись.",
                          reply_markup=ReplyKeyboardRemove())
@@ -251,9 +257,8 @@ def store_sign_up(update, context):
                          text="Упс, на этот тайм слот уже записалось {} человек. "
                               "Попробуй записаться на другое время.".format(time_slot.limit))
     else:
-        time_slot.people.add(User.objects.get(pk=user_id))
-        # if time_slot.people.count() == time_slot.limit:
-        #     time_slot.open = False
+        user = User.objects.get(pk=user_id)
+        time_slot.people.add(user)
         time_slot.save()
         bot.send_message(chat_id=update.message.chat_id,
                          text="Ok, записал на {} {} {}".format(

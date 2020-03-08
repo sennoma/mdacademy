@@ -5,6 +5,7 @@ class Group(models.Model):
     name = models.CharField(max_length=80, unique=True)
     is_active = models.BooleanField(default=True)
     allow_signup = models.BooleanField(default=False)
+    week_limit = models.PositiveSmallIntegerField(default=2)
 
     def __str__(self):
         return self.name

@@ -1,0 +1,23 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}">{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+
+<form action="" method="POST">
+{% csrf_token %}
+<table>
+    {{ form.as_table }}
+</table>
+<input type="submit" name="add" value="Add" />
+</form>
+</div>
+{% endblock %}

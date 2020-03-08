@@ -1,0 +1,11 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools-items %}
+
+    {{ block.super }}
+
+    <li>
+        <a href="create-schedule/" class="grp-state-focus addlink">Add schedule</a>
+    </li>
+
+{% endblock %}
