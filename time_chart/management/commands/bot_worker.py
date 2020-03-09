@@ -15,7 +15,6 @@ from telegram.ext import (
     Filters,
     MessageHandler,
     PicklePersistence,
-    RegexHandler,
     Updater
 )
 
@@ -45,7 +44,7 @@ from time_chart.management.commands.user_handlers import (
 def error(bot, update, error):
     """Log Errors caused by Updates."""
     bot.send_message(chat_id=update.message.chat_id, text="Произошла какая-то ошибка. Попробуй еще раз.")
-    logger.warning('Update "%s" caused error "%s"', update, error)
+    logger.error('Update "%s" caused error "%s"', update, error)
 
 
 def end_conversation(bot, update):
