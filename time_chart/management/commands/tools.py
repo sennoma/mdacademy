@@ -1,4 +1,5 @@
 import logging
+import os
 import re
 from functools import wraps
 
@@ -12,8 +13,12 @@ from time_chart.management.commands.config import (
     LIST_OF_ADMINS,
 )
 
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+if bool(os.environ['DEBUG']):
+    logger.setLevel(logging.DEBUG)
 
 # regex
 date_regex = re.compile(".*([0-9]{4}-[0-9]{2}-[0-9]{2}).*")
