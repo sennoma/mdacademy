@@ -12,24 +12,17 @@ from time_chart.models import Group, Place, TimeSlot, User
 
 
 class DefineScheduleForm(forms.Form):
-    times = (dt.time(i) for i in range(10, 22, 2))
-    TIME_CHOICES = tuple(((t, str(t)) for t in times))
     place = forms.ModelMultipleChoiceField(
         widget=forms.CheckboxSelectMultiple(),
         queryset=Place.objects.all(),
         required=True
     )
 
-    dates = (dt.date.today()+dt.timedelta(days=i) for i in range(7))
-    DATE_CHOICES = tuple(((d, str(d)) for d in dates))
-    date = forms.TypedMultipleChoiceField(
-        choices=DATE_CHOICES,
-        widget=forms.CheckboxSelectMultiple(),
-        # coerce=dt.date,
-        required=False
-    )
-    # start_date = forms.DateField(widget=forms.SelectDateWidget(), initial=dt.date.today)
-    # end_date = forms.DateField(widget=forms.SelectDateWidget(), initial=dt.date.today)
+    start_date = forms.DateField(widget=forms.SelectDateWidget(), initial=dt.date.today)
+    end_date = forms.DateField(widget=forms.SelectDateWidget(), initial=dt.date.today)
+
+    times = (dt.time(i) for i in range(10, 22, 2))
+    TIME_CHOICES = tuple(((t, str(t)) for t in times))
     time = forms.TypedMultipleChoiceField(
         choices=TIME_CHOICES,
         widget=forms.CheckboxSelectMultiple(),
@@ -52,21 +45,38 @@ class DefineScheduleView(FormView):
 
     def post(self, request, *args, **kwargs):
         form = DefineScheduleForm(request.POST)
-        if form.is_valid():
-            time_slots = []
-            for place, date, time in product(form.cleaned_data['place'],
-                                             form.cleaned_data['date'],
-                                             form.cleaned_data['time']):
-                time_slots.append(TimeSlot(place=place,
-                                           date=date,
-                                           time=time))
-            TimeSlot.objects.bulk_create(time_slots)
-            messages.add_message(self.request, messages.WARNING,
-                                 "TimeSlots are created")
-            return redirect('/admin/time_chart/timeslot')
+        if not form.is_valid():
+            messages.add_message(self.request, messages.WARNING, "Form is invalid")
+            # TODO: how to show form invalid
+            return redirect('/admin/time_chart/timeslot/create-schedule/')
 
-        messages.add_message(self.request, messages.WARNING, "Form is invalid")
-        return redirect('/admin')
+        time_slots = []
+        start_date = form.cleaned_data['start_date']
+        end_date = form.cleaned_data['end_date']
+        if start_date > end_date:
+            messages.add_message(self.request, messages.WARNING,
+                                 "end_date should be greater than start_date")
+            return redirect('/admin/time_chart/timeslot/create-schedule/')
+        if (end_date - start_date).days > 7:
+            messages.add_message(self.request, messages.WARNING,
+                                 "You are trying to add too many days into schedule")
+            return redirect('/admin/time_chart/timeslot/create-schedule/')
+        dates = []
+        date = start_date
+        while date <= end_date:
+            dates.append(date)
+            date += dt.timedelta(days=1)
+        for place, date, time in product(form.cleaned_data['place'],
+                                         dates,
+                                         # form.cleaned_data['date'],
+                                         form.cleaned_data['time']):
+            time_slots.append(TimeSlot(place=place,
+                                       date=date,
+                                       time=time))
+        TimeSlot.objects.bulk_create(time_slots)
+        messages.add_message(self.request, messages.WARNING,
+                             "TimeSlots are created")
+        return redirect('/admin/time_chart/timeslot')
 
 
 class ScheduleAdmin(admin.AdminSite):
