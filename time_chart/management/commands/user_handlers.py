@@ -36,9 +36,9 @@ def start_cmd(update, context):
     first_name = update.effective_user.first_name
     last_name = update.effective_user.last_name
     usr, _ = User.objects.get_or_create(id=user_id)
-    usr.nick_name = nick
-    usr.first_name = first_name
-    usr.last_name = last_name
+    usr.nick_name = nick or ""
+    usr.first_name = first_name or ""
+    usr.last_name = last_name or ""
     usr.save()
 
     groups = Group.objects.filter(is_active=True).only('name')
