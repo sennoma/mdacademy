@@ -7,8 +7,17 @@ from django.shortcuts import render
 from django.urls import path
 from django.views.generic import FormView
 from django.shortcuts import redirect
+from dal import autocomplete
 
 from time_chart.models import Group, Place, TimeSlot, User
+
+
+class UserAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        qs = User.objects.all()
+        if self.q:
+            qs = qs.filter(nick_name__istartswith=self.q)
+        return qs
 
 
 class DefineScheduleForm(forms.Form):
@@ -91,6 +100,11 @@ class ScheduleAdmin(admin.AdminSite):
             path('time_chart/timeslot/create-schedule/',
                  self.admin_view(DefineScheduleView.as_view()),
                  name='create_schedule'),
+            path(
+                'user-autocomplete/',
+                self.admin_view(UserAutocomplete.as_view()),
+                name='user-autocomplete',
+            ),
         ]
         return new_urls + urls
 
@@ -102,7 +116,20 @@ class GroupAdmin(admin.ModelAdmin):
     list_display = ('name', 'is_active', 'allow_signup', 'week_limit')
 
 
+class TimeSlotForm(forms.ModelForm):
+    class Meta:
+        model = TimeSlot
+        fields = ('__all__')
+        widgets = {
+            'people': autocomplete.ModelSelect2Multiple(url='/admin/user-autocomplete/')
+        }
+
+
+class TimeSlotAdmin(admin.ModelAdmin):
+    form = TimeSlotForm
+
+
 admin_site.register(Group, GroupAdmin)
 admin_site.register(User)
 admin_site.register(Place)
-admin_site.register(TimeSlot)
+admin_site.register(TimeSlot, TimeSlotAdmin)

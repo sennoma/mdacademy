@@ -7,3 +7,4 @@ conversationbot
 *.log
 tmp/
 .DS_Store
+static/
