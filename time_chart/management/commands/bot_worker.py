@@ -43,13 +43,15 @@ from time_chart.management.commands.user_handlers import (
 )
 
 
-def error(bot, update, error):
+def error(update, context, error):
     """Log Errors caused by Updates."""
+    bot = context.bot
     bot.send_message(chat_id=update.message.chat_id, text="Произошла какая-то ошибка. Попробуй еще раз.")
     logger.error('Update "%s" caused error "%s"', update, error)
 
 
-def end_conversation(bot, update):
+def end_conversation(update, context):
+    bot = context.bot
     user_id = update.effective_user.id
     logger.debug("User %s canceled the conversation.", user_id)
     bot.send_message(chat_id=update.message.chat_id,
@@ -58,7 +60,8 @@ def end_conversation(bot, update):
     return ConversationHandler.END
 
 
-def unknown(bot, update):
+def unknown(update, context):
+    bot = context.bot
     logger.info("User {} {} typed: {}".format(update.effective_user.id,
                                               update.effective_user.username,
                                               update.message.text))
