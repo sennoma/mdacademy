@@ -80,6 +80,8 @@ def run_bot():
     identity_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start_cmd)],
         states={
+            ACCEPT_TERMS_STATE: [MessageHandler(Filters.text, accept_terms,
+                                                pass_user_data=True)],
             ASK_GROUP_NUM_STATE: [MessageHandler(Filters.text, store_group_num)],
             ASK_LAST_NAME_STATE: [MessageHandler(Filters.text, store_last_name)],
         },
@@ -96,7 +98,6 @@ def run_bot():
     sign_up_conv_handler = ConversationHandler(
         entry_points=[MessageHandler(Filters.regex(".*([Зз]апиши меня).*"), ask_place)],
         states={
-            ACCEPT_TERMS_STATE: [MessageHandler(Filters.text, accept_terms, pass_user_data=True)],
             ASK_PLACE_STATE: [MessageHandler(Filters.text, ask_date, pass_user_data=True)],
             ASK_DATE_STATE: [MessageHandler(Filters.text, ask_time, pass_user_data=True)],
             ASK_TIME_STATE: [MessageHandler(Filters.text, store_sign_up, pass_user_data=True)],
