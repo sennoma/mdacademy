@@ -333,7 +333,16 @@ def unsubscribe(update, context):
                              text="Отменил. Попробуй заново.",
                              reply_markup=ReplyKeyboardRemove())
             return ConversationHandler.END
-        place, date, time = msg.split()
+        res = msg.split()
+        if len(res) == 3:
+            place, date, time = res
+        elif len(res) > 3:
+            place, date, time = ' '.join(res[:-2]), res[-2], res[-1]
+        else:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text="Что-то пошло не так. Попробуй еще раз.",
+                             reply_markup=ReplyKeyboardRemove())
+            return ConversationHandler.END
         try:
             date = dt.datetime.strptime(date, DATE_FORMAT).date()
             time = dt.datetime.strptime(time, TIME_FORMAT).time()
