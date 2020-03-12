@@ -19,6 +19,7 @@ from telegram.ext import (
 )
 
 from time_chart.management.commands.config import (
+    ACCEPT_TERMS_STATE,
     ASK_DATE_STATE,
     ASK_PLACE_STATE,
     ASK_TIME_STATE,
@@ -32,6 +33,7 @@ from time_chart.management.commands.user_handlers import (
     start_cmd,
     store_group_num,
     store_last_name,
+    accept_terms,
     ask_place,
     ask_date,
     ask_time,
@@ -91,6 +93,7 @@ def run_bot():
     sign_up_conv_handler = ConversationHandler(
         entry_points=[MessageHandler(Filters.regex(".*([Зз]апиши меня).*"), ask_place)],
         states={
+            ACCEPT_TERMS_STATE: [MessageHandler(Filters.text, accept_terms, pass_user_data=True)],
             ASK_PLACE_STATE: [MessageHandler(Filters.text, ask_date, pass_user_data=True)],
             ASK_DATE_STATE: [MessageHandler(Filters.text, ask_time, pass_user_data=True)],
             ASK_TIME_STATE: [MessageHandler(Filters.text, store_sign_up, pass_user_data=True)],

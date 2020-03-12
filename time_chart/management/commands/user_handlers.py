@@ -11,6 +11,7 @@ from telegram.ext import ConversationHandler
 from time_chart.models import Group, User, Place, TimeSlot
 
 from time_chart.management.commands.config import (
+    ACCEPT_TERMS_STATE,
     ASK_GROUP_NUM_STATE,
     ASK_LAST_NAME_STATE,
     ASK_PLACE_STATE,
@@ -41,21 +42,39 @@ def start_cmd(update, context):
     usr.last_name = last_name or ""
     usr.save()
 
+    bot.send_message(chat_id=update.message.chat_id,
+                     text="Привет! Я MD-помощник и я буду записывать тебя на занятия. "
+                          "Я понимаю только слова-команды, поэтому прочитай внимательно всю инструкцию ниже. "
+                          "Она останется в нашей переписке и ты в любой момент сможешь вернуться "
+                          "в начало нашего диалога и перечитать, если что-то забыл. "
+                          "Записаться можно при наличии времени в расписании, написав мне \"Запиши меня\". "
+                          "И я предложу выбрать из тех дат, которые остались свободными. "
+                          "Удалить запись можно написав мне \"Отпиши меня\" или \"Отмени запись\". "
+                          "Если остались вопросы, напиши @mdmotomama личное сообщение. Если нет, "
+                          "то подтверди, что ты всё прочитал и понял командой \"Принимаю\"")
+
+    return ACCEPT_TERMS_STATE
+
+
+def accept_terms(update, context):
+    bot = context.bot
+    accept = update.message.text.strip()
+    if "принимаю" not in accept.lower():
+        bot.send_message(chat_id=update.message.chat_id,
+                         text="Я немного не понял. Так ты принимаешь условия? Если принимаешь, то напиши мне \"Принимаю\".")
+        return ACCEPT_TERMS_STATE
+
     groups = Group.objects.filter(is_active=True).only('name')
     if groups:
         keyboard = [[KeyboardButton(group.name)] for group in groups]
         reply_markup = ReplyKeyboardWithCancel(keyboard, one_time_keyboard=True)
         bot.send_message(chat_id=update.message.chat_id,
-                         text="Привет! Я MD-помошник. Буду вас записывать на занятия. "
-                              "Записаться можно при наличии времени в расписании, написав мне \"запиши меня\". "
-                              "И я предложу выбрать из тех дат, которые остались свободными. "
-                              "Удалить запись можно написав мне \"Отпиши меня\" или \"Отмени запись\". "
-                              "А сейчас представься, пожалуйста, чтобы я знал, кого я записываю на занятия. "
-                              "Укажи номер своей группы.",
+                         text="Спасибо! Двигаемся дальше. Укажи, пожалуйста, номер твоей группы.",
                          reply_markup=reply_markup)
     else:
         bot.send_message(chat_id=update.message.chat_id,
                          text="Я не нахожу активных групп. Нужно связаться с администратором.")
+
     return ASK_GROUP_NUM_STATE
 
 
@@ -65,7 +84,9 @@ def store_group_num(update, context):
     group_name = update.message.text.strip().split()[0]
     if not group_name:
         bot.send_message(chat_id=update.message.chat_id,
-                         text="Я немного не понял. Просто напиши номер или название своей группы.")
+                         text="Я немного не понял. Просто нажми кнопку с названием твоей группы на клавиатуре."
+                              "Если клавиатуры нет, может она спраталась. Попробуй поискать кнопочку рядом со "
+                              "строкой ввода.")
         return ASK_GROUP_NUM_STATE
 
     try:
@@ -92,10 +113,10 @@ def store_last_name(update, context):
     User.objects.filter(pk=user_id).update(last_name=last_name)
     usr = User.objects.get(pk=user_id)
     bot.send_message(chat_id=update.message.chat_id,
-                     text=f"Спасибо. Я тебя записал. Твоя фамилия {usr.last_name},"
-                          f" и ты из группы {usr.group.name} правильно? Если нет,"
-                          " то используй команду /start чтобы изменить данные о себе."
-                          " Если всё верно, попробуй записаться. Напиши 'Запиши меня'.")
+                     text=f"Твоя фамилия {usr.last_name} и ты из группы {usr.group.name}, "
+                          f"верно? Если нет, нажми /start и измени данные. Если все верно, "
+                          f"то дождись уведомления о начале записи на занятия. Напоминаю, "
+                          f"что я тебя уже запомнил и заново вводить свою фамилию больше не понадобится.")
     return ConversationHandler.END
 
 
