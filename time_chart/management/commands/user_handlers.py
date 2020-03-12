@@ -25,6 +25,7 @@ from time_chart.management.commands.config import (
     RETURN_UNSUBSCRIBE_STATE,
 )
 from time_chart.management.commands.tools import (
+    logger,
     ReplyKeyboardWithCancel
 )
 
@@ -92,7 +93,8 @@ def store_group_num(update, context):
     try:
         group = Group.objects.get(name=group_name)
         User.objects.filter(pk=user_id).update(group=group.id)
-    except:
+    except Exception as e:
+        logger.error('Update "%s" caused error "%s"', update, e)
         bot.send_message(chat_id=update.message.chat_id,
                          text="Что-то пошло не так. Попробуй еще раз.",
                          reply_markup=ReplyKeyboardRemove())
@@ -353,7 +355,8 @@ def unsubscribe(update, context):
         bot.send_message(chat_id=update.message.chat_id,
                          text="Ok, удалил запись на {} {} {}".format(place, date, time),
                          reply_markup=ReplyKeyboardRemove())
-    except:
+    except Exception as e:
+        logger.error('Update "%s" caused error "%s"', update, e)
         bot.send_message(chat_id=update.message.chat_id,
                          text="Что-то пошло не так. Попробуй еще раз.",
                          reply_markup=ReplyKeyboardRemove())
