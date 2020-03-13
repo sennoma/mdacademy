@@ -1,13 +1,13 @@
 import datetime as dt
 from itertools import product
 
+from dal import autocomplete
 from django import forms
 from django.contrib import admin, messages
-from django.shortcuts import render
+from django.forms.widgets import TextInput
+from django.shortcuts import redirect, render
 from django.urls import path
 from django.views.generic import FormView
-from django.shortcuts import redirect
-from dal import autocomplete
 
 from time_chart.models import Group, Place, TimeSlot, User
 
@@ -112,7 +112,18 @@ class ScheduleAdmin(admin.AdminSite):
 admin_site = ScheduleAdmin(name='scheduleadmin')
 
 
+class GroupForm(forms.ModelForm):
+
+    class Meta:
+        model = Group
+        fields = '__all__'
+        widgets = {
+            'color': TextInput(attrs={'type': 'color'}),
+        }
+
+
 class GroupAdmin(admin.ModelAdmin):
+    form = GroupForm
     list_display = ('name', 'is_active', 'allow_signup', 'week_limit')
 
 

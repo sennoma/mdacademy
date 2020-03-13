@@ -1,6 +1,5 @@
 import datetime as dt
 
-from django.db.models import Count
 from telegram import (
     ReplyKeyboardRemove,
     KeyboardButton,
@@ -28,6 +27,13 @@ from time_chart.management.commands.tools import (
     logger,
     ReplyKeyboardWithCancel
 )
+
+
+def is_past_19():
+    """Is current time past 19:00 (UTC+3)"""
+    if dt.datetime.now().time().hour > 16:
+        return True
+    return False
 
 
 # commands
@@ -176,8 +182,11 @@ def ask_date(update, context, ):
         return ConversationHandler.END
 
     context.user_data['place'] = msg
+    start_date = dt.date.today()
+    if is_past_19():
+        start_date = dt.date.today() + dt.timedelta(days=1)
     time_slots = TimeSlot.objects.filter(open=True,
-                                         date__gt=dt.date.today(),
+                                         date__gt=start_date,
                                          place__name=msg).distinct('date')
     if not time_slots:
         bot.send_message(chat_id=update.message.chat_id,
@@ -236,7 +245,7 @@ def ask_time(update, context):
                               "Чтобы записаться отмени ранее сделанную запись.".format(date),
                          reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
-    context.user_data['date'] = date.isoformat()
+    context.user_data['date'] = date
     place = context.user_data['place']
     time_slots = TimeSlot.objects.filter(date=date, place__name=place)
     keyboard = [[
@@ -279,6 +288,10 @@ def store_sign_up(update, context):
         bot.send_message(chat_id=update.message.chat_id,
                          text="Упс, на этот тайм слот уже записалось {} человек. "
                               "Попробуй записаться на другое время.".format(time_slot.limit))
+    elif date - dt.date.today() == dt.timedelta(days=1) and is_past_19():
+        bot.send_message(chat_id=update.message.chat_id,
+                         text="Не получилось записать. Запись на 'завтра' можно совершить до 19:00. "
+                              "Попробуй записаться на другую дату.".format(time_slot.limit))
     else:
         user = User.objects.get(pk=user_id)
         time_slot.people.add(user)
