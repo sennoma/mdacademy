@@ -1,91 +1,14 @@
+import csv
 import datetime as dt
-from itertools import product
-
 from dal import autocomplete
 from django import forms
-from django.contrib import admin, messages
+from django.contrib import admin
 from django.forms.widgets import TextInput
-from django.shortcuts import redirect, render
+from django.http import HttpResponse
 from django.urls import path
-from django.views.generic import FormView
 
 from time_chart.models import Group, Place, TimeSlot, User
-
-
-class UserAutocomplete(autocomplete.Select2QuerySetView):
-    def get_queryset(self):
-        qs = User.objects.all()
-        if self.q:
-            qs = qs.filter(nick_name__istartswith=self.q)
-        return qs
-
-
-class DefineScheduleForm(forms.Form):
-    place = forms.ModelMultipleChoiceField(
-        widget=forms.CheckboxSelectMultiple(),
-        queryset=Place.objects.all(),
-        required=True
-    )
-
-    start_date = forms.DateField(widget=forms.SelectDateWidget(), initial=dt.date.today)
-    end_date = forms.DateField(widget=forms.SelectDateWidget(), initial=dt.date.today)
-
-    times = (dt.time(i) for i in range(10, 22, 2))
-    TIME_CHOICES = tuple(((t, str(t)) for t in times))
-    time = forms.TypedMultipleChoiceField(
-        choices=TIME_CHOICES,
-        widget=forms.CheckboxSelectMultiple(),
-        # coerce=dt.time,
-        required=False
-    )
-
-
-class DefineScheduleView(FormView):
-    template_name = 'admin/add_time_slots.html'
-    form_class = DefineScheduleForm
-
-    def get(self, request, *args, **kwargs):
-        form = self.form_class()
-        context = {
-            'form': form,
-            'title': "Add TimeSlots"
-        }
-        return render(request, self.template_name, context)
-
-    def post(self, request, *args, **kwargs):
-        form = DefineScheduleForm(request.POST)
-        if not form.is_valid():
-            messages.add_message(self.request, messages.WARNING, "Form is invalid")
-            # TODO: how to show form invalid
-            return redirect('/admin/time_chart/timeslot/create-schedule/')
-
-        time_slots = []
-        start_date = form.cleaned_data['start_date']
-        end_date = form.cleaned_data['end_date']
-        if start_date > end_date:
-            messages.add_message(self.request, messages.WARNING,
-                                 "end_date should be greater than start_date")
-            return redirect('/admin/time_chart/timeslot/create-schedule/')
-        if (end_date - start_date).days > 7:
-            messages.add_message(self.request, messages.WARNING,
-                                 "You are trying to add too many days into schedule")
-            return redirect('/admin/time_chart/timeslot/create-schedule/')
-        dates = []
-        date = start_date
-        while date <= end_date:
-            dates.append(date)
-            date += dt.timedelta(days=1)
-        for place, date, time in product(form.cleaned_data['place'],
-                                         dates,
-                                         # form.cleaned_data['date'],
-                                         form.cleaned_data['time']):
-            time_slots.append(TimeSlot(place=place,
-                                       date=date,
-                                       time=time))
-        TimeSlot.objects.bulk_create(time_slots)
-        messages.add_message(self.request, messages.WARNING,
-                             "TimeSlots are created")
-        return redirect('/admin/time_chart/timeslot')
+from time_chart.views import UserAutocomplete, DefineScheduleView
 
 
 class ScheduleAdmin(admin.AdminSite):
@@ -138,6 +61,104 @@ class TimeSlotForm(forms.ModelForm):
 
 class TimeSlotAdmin(admin.ModelAdmin):
     form = TimeSlotForm
+    actions = ["export_as_csv"]
+
+    def get_queryset(self, request):
+        """
+        Return a QuerySet of all model instances that can be edited by the
+        admin site. This is used by changelist_view.
+        """
+        qs = super().get_queryset(request)
+        qs = qs.filter(date__gte=dt.date.today())
+        qs = qs.order_by('date', 'time', 'place')
+        return qs
+
+    def export_as_csv(self, request, queryset):
+
+        meta = self.model._meta
+        field_names = [field.name for field in meta.fields]
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
+        writer = csv.writer(response)
+
+        writer.writerow(field_names)
+        for obj in queryset:
+            row = writer.writerow([getattr(obj, field) for field in field_names])
+
+        return response
+
+    export_as_csv.short_description = "Export Selected time slots as Schedule"
+
+
+# def schedule(bot, update, args):
+#     add_count = False
+#     full_schedule = False
+#     if len(args) > 0:
+#         if args[0] not in ('++', 'all'):
+#             bot.send_message(chat_id=update.message.chat_id, text="Наверное аргумент неправильный.")
+#             return
+#         add_count = args[0] == '++'
+#         full_schedule = args[0] == 'all'
+#
+#     if full_schedule:
+#         schedule = db.execute_select(db.get_full_schedule_sql, (dt.date(2019, 4, 1).isoformat(),))
+#     else:
+#         schedule = db.execute_select(db.get_full_schedule_sql, (dt.date.today().isoformat(),))
+#
+#     user_ids = list(set(map(lambda x: x[5] or 'unknown', schedule)))
+#     user_count = db.execute_select(db.get_user_visits_count, (dt.date.today().isoformat(), user_ids))
+#     user_count = dict(user_count)
+#     lines = [(line[0], str(line[1]), line[2],  # place, date, time
+#                        str(line[3]), line[4],  # GroupNum LastName
+#                        str(user_count.get(line[5], 0)))  # visit count
+#              for line in schedule]
+#     # partition by places
+#     records_by_date_place = defaultdict(list)
+#     for line in lines:
+#         # group by date+place
+#         records_by_date_place[(line[1], line[0])].append(line)
+#     workbook = xlsxwriter.Workbook('/tmp/schedule.xlsx')
+#     try:
+#         merge_format = workbook.add_format({
+#             'align': 'center',
+#             'bold': True,
+#         })
+#         worksheet = workbook.add_worksheet()
+#         row = 0
+#         for key in sorted(records_by_date_place.keys()):
+#             records = records_by_date_place[key]
+#             row += 1
+#             # merge cells and write 'day date place'
+#             date = dt.datetime.strptime(key[0], DATE_FORMAT).date()
+#             day = WEEKDAYS[date.weekday()]
+#             place = key[1]
+#             worksheet.merge_range(row, 1, row, 4, f"{day}, {date}, {place}", merge_format)
+#             row += 1
+#             # write time slots
+#             col = 1
+#             for time in CLASSES_HOURS:
+#                 worksheet.write(row, col, time)
+#                 col += 1
+#             row += 1
+#             students_lists = defaultdict(list)
+#             for line in sorted(records, key=lambda x: x[4] or ''):  # sort by last name
+#                 string = f"{line[3]} {line[4]} ({line[5]})" if add_count else f"{line[3]} {line[4]}"
+#                 students_lists[line[2]].append(string)
+#             lines = []
+#             for time in CLASSES_HOURS:
+#                 lines.append(students_lists[time])
+#             for line in zip_longest(*lines, fillvalue=""):
+#                 col = 1
+#                 for val in line:
+#                     worksheet.write(row, col, val)
+#                     col += 1
+#                 row += 1
+#     except Exception as e:
+#         logger.error(e)
+#     finally:
+#         workbook.close()
+#         bot.send_document(chat_id=update.message.chat_id, document=open('/tmp/schedule.xlsx', 'rb'))
 
 
 admin_site.register(Group, GroupAdmin)
