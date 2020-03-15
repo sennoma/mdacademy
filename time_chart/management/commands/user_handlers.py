@@ -43,9 +43,12 @@ def start_cmd(update, context):
     first_name = update.effective_user.first_name
     last_name = update.effective_user.last_name
     usr, _ = User.objects.get_or_create(id=user_id)
-    usr.nick_name = nick or ""
-    usr.first_name = first_name or ""
-    usr.last_name = last_name or ""
+    if nick:
+        usr.nick_name = nick or ""
+    if first_name:
+        usr.first_name = first_name or ""
+    if last_name:
+        usr.last_name = last_name or ""
     usr.save()
 
     bot.send_message(chat_id=update.message.chat_id,
@@ -149,7 +152,8 @@ def ask_place(update, context):
                                    date__gte=start_of_the_week)
     if user_id not in LIST_OF_ADMINS and len(subs) > usr.group.week_limit:
         bot.send_message(chat_id=update.message.chat_id,
-                         text="У тебя уже есть две записи на эту неделю. Сначала отмени другую запись.",
+                         text="У тебя уже достигнут лимит записей на эту неделю. "
+                              "Сначала отмени другую запись.",
                          reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
     places = Place.objects.filter(is_active=True)
