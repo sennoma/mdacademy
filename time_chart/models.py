@@ -15,8 +15,8 @@ class Group(models.Model):
 class User(models.Model):
     id = models.PositiveIntegerField(primary_key=True)
     is_active = models.BooleanField(default=True)
-    nick_name = models.CharField(max_length=100, default="")
-    first_name = models.CharField(max_length=100, default="")
+    nick_name = models.CharField(max_length=100, default="", blank=True)
+    first_name = models.CharField(max_length=100, default="", blank=True)
     last_name = models.CharField(max_length=100, default="")
     group = models.ForeignKey(Group, null=True, on_delete=models.SET_NULL)
 
