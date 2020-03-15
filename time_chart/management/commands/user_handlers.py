@@ -17,7 +17,6 @@ from time_chart.management.commands.config import (
     ASK_DATE_STATE,
     ASK_TIME_STATE,
     LIST_OF_ADMINS,
-    WEEKDAYS,
     WEEKDAYS_SHORT,
     DATE_FORMAT,
     TIME_FORMAT,
