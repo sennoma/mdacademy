@@ -81,7 +81,7 @@ class TimeSlotForm(forms.ModelForm):
 
 class TimeSlotAdmin(admin.ModelAdmin):
     form = TimeSlotForm
-    actions = ["export_as_csv"]
+    actions = ["export_as_csv", "mark_closed", "mark_open"]
 
     def get_queryset(self, request):
         """
@@ -92,6 +92,12 @@ class TimeSlotAdmin(admin.ModelAdmin):
         qs = qs.filter(date__gte=dt.date.today())
         qs = qs.order_by('date', 'time', 'place')
         return qs
+
+    def mark_open(modeladmin, request, queryset):
+        queryset.update(open=True)
+
+    def mark_closed(modeladmin, request, queryset):
+        queryset.update(open=False)
 
     def export_as_csv(self, request, queryset):
         response = HttpResponse(content_type='application/vnd.ms-excel')
