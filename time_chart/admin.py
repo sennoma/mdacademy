@@ -65,7 +65,9 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ('id', 'nick_name', 'first_name', 'last_name', 'is_active', 'group_name')
 
     def group_name(self, obj):
-        return obj.group.name
+        if obj.group:
+            return obj.group.name
+        return ''
 
 
 class TimeSlotForm(forms.ModelForm):
