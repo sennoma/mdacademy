@@ -21,7 +21,7 @@ class User(models.Model):
     group = models.ForeignKey(Group, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
-        return self.nick_name or " ".join((self.first_name, self.last_name))
+        return self.last_name or self.nick_name
 
 
 # *********** Time Schedule models ***************************
