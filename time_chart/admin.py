@@ -61,6 +61,13 @@ class GroupAdmin(admin.ModelAdmin):
     list_display = ('name', 'is_active', 'allow_signup', 'week_limit')
 
 
+class UserAdmin(admin.ModelAdmin):
+    list_display = ('id', 'nick_name', 'first_name', 'last_name', 'is_active', 'group_name')
+
+    def group_name(self, obj):
+        return obj.group.name
+
+
 class TimeSlotForm(forms.ModelForm):
     class Meta:
         model = TimeSlot
@@ -165,6 +172,6 @@ class TimeSlotAdmin(admin.ModelAdmin):
 
 
 admin_site.register(Group, GroupAdmin)
-admin_site.register(User)
+admin_site.register(User, UserAdmin)
 admin_site.register(Place)
 admin_site.register(TimeSlot, TimeSlotAdmin)
