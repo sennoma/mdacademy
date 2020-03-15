@@ -105,7 +105,8 @@ def store_group_num(update, context):
                          reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
     bot.send_message(chat_id=update.message.chat_id,
-                     text="Теперь напиши, пожалуйста, фамилию.")
+                     text="Теперь напиши, пожалуйста, фамилию.",
+                     reply_markup=ReplyKeyboardRemove())
     return ASK_LAST_NAME_STATE
 
 
