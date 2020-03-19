@@ -49,7 +49,7 @@ class TimeSlot(models.Model):
     open = models.BooleanField(default=False)
 
     people = models.ManyToManyField(User, blank=True)
-    limit = models.PositiveSmallIntegerField(default=5)
+    limit = models.PositiveSmallIntegerField(default=8)
 
     def __str__(self):
         return f"{self.date} {self.time} ({self.place})"
