@@ -251,7 +251,9 @@ def ask_time(update, context):
         return ConversationHandler.END
     context.user_data['date'] = date
     place = context.user_data['place']
-    time_slots = TimeSlot.objects.filter(date=date, place__name=place).order_by('time')
+    time_slots = TimeSlot.objects.filter(date=date,
+                                         place__name=place,
+                                         open=True).order_by('time')
     keyboard = [[
         KeyboardButton(
             "{} (свободно слотов {})".format(time_slot.time.strftime("%H:%M"),
@@ -288,6 +290,11 @@ def store_sign_up(update, context):
 
     time_slot = TimeSlot.objects.get(date=date, place__name=place, time=time)
 
+    if not time_slot.open:
+        bot.send_message(chat_id=update.message.chat_id,
+                         text="Упс, этот тайм слот закрыт для записи в данный момент. "
+                              "Попробуй записаться на другое время или узнай у "
+                              "администратора когда будет открыта запись на этот.".format(time_slot.limit))
     if time_slot.people.count() == time_slot.limit:
         bot.send_message(chat_id=update.message.chat_id,
                          text="Упс, на этот тайм слот уже записалось {} человек. "
