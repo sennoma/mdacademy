@@ -144,13 +144,13 @@ def ask_place(update, context):
         return ConversationHandler.END
 
     today = dt.date.today()
-    if today.weekday() == 6:
+    if today.weekday() == 6:  # 6 == sunday
         start_of_the_week = today + dt.timedelta(days=1)
     else:
         start_of_the_week = today - dt.timedelta(days=today.weekday())
     subs = TimeSlot.objects.filter(people__pk=usr.pk,
                                    date__gte=start_of_the_week)
-    if user_id not in LIST_OF_ADMINS and len(subs) > usr.group.week_limit:
+    if user_id not in LIST_OF_ADMINS and len(subs) >= usr.group.week_limit:
         bot.send_message(chat_id=update.message.chat_id,
                          text="У тебя уже достигнут лимит записей на эту неделю. "
                               "Сначала отмени другую запись.",
@@ -251,7 +251,7 @@ def ask_time(update, context):
         return ConversationHandler.END
     context.user_data['date'] = date
     place = context.user_data['place']
-    time_slots = TimeSlot.objects.filter(date=date, place__name=place)
+    time_slots = TimeSlot.objects.filter(date=date, place__name=place).order_by('time')
     keyboard = [[
         KeyboardButton(
             "{} (свободно слотов {})".format(time_slot.time.strftime("%H:%M"),

@@ -110,12 +110,15 @@ class TimeSlotAdmin(admin.ModelAdmin):
 
     def make_schedule(self, queryset):
         add_count = True
-        full_schedule = False
 
         qs = queryset.select_related().all()
         people = set([u for t in qs for u in t.people.all()])
 
-        user_count = User.objects.annotate(time_slot_count=Count('timeslot')).filter(id__in=[p.id for p in people])
+        user_count = User.objects.annotate(
+            time_slot_count=Count('timeslot')).filter(
+            id__in=[p.id for p in people],
+            timeslot__date__lt=dt.date.today()
+        )
         user_count = dict({u.id: u.time_slot_count for u in user_count})
         lines = [(line.place.name, line.date.isoformat(), line.time.strftime('%H:%M'),
                   str(u.group), u.last_name,
