@@ -114,11 +114,10 @@ class TimeSlotAdmin(admin.ModelAdmin):
         qs = queryset.select_related().all()
         people = set([u for t in qs for u in t.people.all()])
 
-        user_count = User.objects.annotate(
-            time_slot_count=Count('timeslot')).filter(
+        user_count = User.objects.filter(
             id__in=[p.id for p in people],
             timeslot__date__lt=dt.date.today()
-        )
+        ).annotate(time_slot_count=Count('timeslot'))
         user_count = dict({u.id: u.time_slot_count for u in user_count})
         lines = [(line.place.name, line.date.isoformat(), line.time.strftime('%H:%M'),
                   str(u.group), u.last_name,
