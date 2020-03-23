@@ -16,7 +16,7 @@ from time_chart.management.commands.config import (
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger()
-if bool(os.environ['DEBUG']):
+if bool(int(os.environ['DEBUG'])):
     logger.setLevel(logging.DEBUG)
 
 # regex
