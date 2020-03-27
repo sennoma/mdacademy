@@ -81,7 +81,7 @@ class TimeSlotForm(forms.ModelForm):
 
 class TimeSlotAdmin(admin.ModelAdmin):
     form = TimeSlotForm
-    actions = ["export_as_csv", "mark_closed", "mark_open"]
+    actions = ["get_complete_schedule", "get_current_schedule", "mark_closed", "mark_open"]
 
     def get_queryset(self, request):
         """
@@ -99,21 +99,33 @@ class TimeSlotAdmin(admin.ModelAdmin):
     def mark_closed(modeladmin, request, queryset):
         queryset.update(open=False)
 
-    def export_as_csv(self, request, queryset):
+    def get_current_schedule(self, request, queryset):
         response = HttpResponse(content_type='application/vnd.ms-excel')
         response['Content-Disposition'] = 'attachment; filename=schedule.xlsx'
         xlsx_data = self.make_schedule(queryset)
         response.write(xlsx_data)
         return response
 
-    export_as_csv.short_description = "Export Selected time slots as Schedule"
+    get_current_schedule.short_description = "Export Selected time slots as Schedule"
 
-    def make_schedule(self, queryset):
+    def get_complete_schedule(self, request, queryset):
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=schedule.xlsx'
+        xlsx_data = self.make_schedule(queryset, complete=True)
+        response.write(xlsx_data)
+        return response
+
+    get_complete_schedule.short_description = "Export Complete Schedule"
+
+    def make_schedule(self, queryset, complete=False):
         add_count = True
 
-        qs = queryset.select_related().all()
-        people = set([u for t in qs for u in t.people.all()])
+        if complete:
+            qs = TimeSlot.objects.select_related().all()
+        else:
+            qs = queryset.select_related().all()
 
+        people = set([u for t in qs for u in t.people.all()])
         user_count = User.objects.filter(
             id__in=[p.id for p in people],
             timeslot__date__lt=dt.date.today()
