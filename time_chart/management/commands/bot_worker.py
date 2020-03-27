@@ -43,11 +43,11 @@ from time_chart.management.commands.user_handlers import (
 )
 
 
-def error(update, context, error):
+def error(update, context):
     """Log Errors caused by Updates."""
     bot = context.bot
     bot.send_message(chat_id=update.message.chat_id, text="Произошла какая-то ошибка. Попробуй еще раз.")
-    logger.error('Update "%s" caused error "%s"', update, error)
+    logger.error('Update "%s" caused error "%s"', update, context.error)
 
 
 def end_conversation(update, context):
