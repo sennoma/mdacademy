@@ -171,7 +171,7 @@ def ask_place(update, context):
     return ASK_PLACE_STATE
 
 
-def ask_date(update, context, ):
+def ask_date(update, context):
     """Asks date to subscribe to
 
     Dates are offered starting from 'tomorrow'. Users are not allowed to edit
@@ -295,10 +295,10 @@ def store_sign_up(update, context):
                          text="Упс, этот тайм слот закрыт для записи в данный момент. "
                               "Попробуй записаться на другое время или узнай у "
                               "администратора когда будет открыта запись на этот.".format(time_slot.limit))
-    if time_slot.people.count() == time_slot.limit:
+    if time_slot.people.count() >= time_slot.limit:
         bot.send_message(chat_id=update.message.chat_id,
                          text="Упс, на этот тайм слот уже записалось {} человек. "
-                              "Попробуй записаться на другое время.".format(time_slot.limit))
+                              "Попробуй записаться на другое время.".format(time_slot.people.count()))
     elif date - dt.date.today() == dt.timedelta(days=1) and is_past_19():
         bot.send_message(chat_id=update.message.chat_id,
                          text="Не получилось записать. Запись на 'завтра' можно совершить до 19:00. "
