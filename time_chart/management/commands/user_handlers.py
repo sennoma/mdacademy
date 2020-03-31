@@ -349,8 +349,8 @@ def unsubscribe(update, context):
     Removes him from schedule. Check that the date given is not 'today'
     or earlier.
     """
+    bot = context.bot
     try:
-        bot = context.bot
         msg = update.message.text.strip()
         if msg == "Отмена":
             bot.send_message(chat_id=update.message.chat_id,
@@ -379,6 +379,11 @@ def unsubscribe(update, context):
         if date <= dt.date.today():
             bot.send_message(chat_id=update.message.chat_id,
                              text="Нельзя отменять запись в день занятия.",
+                             reply_markup=ReplyKeyboardRemove())
+            return ConversationHandler.END
+        if date == (dt.date.today() + dt.timedelta(days=1)) and is_past_19():
+            bot.send_message(chat_id=update.message.chat_id,
+                             text="Нельзя отменять запись на завтра после 19:00.",
                              reply_markup=ReplyKeyboardRemove())
             return ConversationHandler.END
 
