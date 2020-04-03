@@ -299,7 +299,7 @@ def store_sign_up(update, context):
         bot.send_message(chat_id=update.message.chat_id,
                          text="Упс, на этот тайм слот уже записалось {} человек. "
                               "Попробуй записаться на другое время.".format(time_slot.people.count()))
-    elif date - dt.date.today() == dt.timedelta(days=1) and is_past_19():
+    elif date == (dt.date.today() + dt.timedelta(days=1)) and is_past_19():
         bot.send_message(chat_id=update.message.chat_id,
                          text="Не получилось записать. Запись на 'завтра' можно совершить до 19:00. "
                               "Попробуй записаться на другую дату.".format(time_slot.limit))
