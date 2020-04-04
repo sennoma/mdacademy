@@ -216,9 +216,11 @@ def ask_time(update, context):
     Checks that the date given is not earlier than 'tomorrow'. Users are not
     allowed to edit their subscriptions for 'today' and earlier.
     """
-    date = update.message.text.strip().split()[1]
     bot = context.bot
-    if date == "Отмена":
+    res = update.message.text.strip().split()
+    if len(res) > 1:
+        _, date = res[:2]
+    elif res[0] == "Отмена":
         bot.send_message(chat_id=update.message.chat_id,
                          text="Отменил. Попробуй заново.",
                          reply_markup=ReplyKeyboardRemove())
