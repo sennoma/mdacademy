@@ -51,5 +51,7 @@ class TimeSlot(models.Model):
     people = models.ManyToManyField(User, blank=True)
     limit = models.PositiveSmallIntegerField(default=8)
 
+    allowed_groups = models.ManyToManyField(Group, default=None, blank=True)
+
     def __str__(self):
         return f"{self.date} {self.time} ({self.place})"

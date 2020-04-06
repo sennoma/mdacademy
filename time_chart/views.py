@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.views.generic import FormView
 
-from time_chart.models import Place, TimeSlot, User
+from time_chart.models import Group, Place, TimeSlot, User
 
 
 class UserAutocomplete(autocomplete.Select2QuerySetView):
@@ -26,6 +26,12 @@ class DefineScheduleForm(forms.Form):
         widget=forms.CheckboxSelectMultiple(),
         queryset=Place.objects.all(),
         required=True
+    )
+
+    groups = forms.ModelMultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple(),
+        queryset=Group.objects.all(),
+        required=False
     )
 
     start_date = forms.DateField(widget=forms.SelectDateWidget(), initial=dt.date.today)
@@ -76,14 +82,15 @@ class DefineScheduleView(FormView):
         while date <= end_date:
             dates.append(date)
             date += dt.timedelta(days=1)
+        groups = form.cleaned_data['groups']
         for place, date, time in product(form.cleaned_data['place'],
                                          dates,
-                                         # form.cleaned_data['date'],
                                          form.cleaned_data['time']):
-            time_slots.append(TimeSlot(place=place,
-                                       date=date,
-                                       time=time))
-        TimeSlot.objects.bulk_create(time_slots)
+            ts = TimeSlot(place=place, date=date, time=time)
+            ts.save()
+            ts.allowed_groups.set(groups or [])
+            time_slots.append(ts)
+            ts.save()
         messages.add_message(self.request, messages.WARNING,
                              "TimeSlots are created")
         return redirect('/admin/time_chart/timeslot')
