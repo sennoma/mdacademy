@@ -12,10 +12,13 @@ from time_chart.models import Place, TimeSlot, User
 
 class UserAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
-        qs = User.objects.all()
+        qs = User.objects.select_related('group')
         if self.q:
             qs = qs.filter(last_name__istartswith=self.q)
-        return qs
+        return qs.all()
+
+    def get_result_label(self, item):
+        return f"{item.last_name} ({item.group.name})"
 
 
 class DefineScheduleForm(forms.Form):
