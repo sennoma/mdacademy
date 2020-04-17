@@ -1,5 +1,6 @@
 import datetime as dt
 
+from django.db.models import Q
 from telegram import (
     ReplyKeyboardRemove,
     KeyboardButton,
@@ -189,9 +190,14 @@ def ask_date(update, context):
     start_date = dt.date.today()
     if is_past_19():
         start_date = dt.date.today() + dt.timedelta(days=1)
-    time_slots = TimeSlot.objects.filter(open=True,
-                                         date__gt=start_date,
-                                         place__name=msg).distinct('date')
+    user_id = update.effective_user.id
+    usr = User.objects.get(pk=user_id)
+    time_slots = TimeSlot.objects.filter(
+        Q(allowed_groups=usr.group) | Q(allowed_groups__isnull=True),
+        open=True,
+        date__gt=start_date,
+        place__name=msg
+    ).distinct('date').order_by('date')
     if not time_slots:
         bot.send_message(chat_id=update.message.chat_id,
                          text="Нету открытых дат для записи.",
@@ -253,9 +259,14 @@ def ask_time(update, context):
         return ConversationHandler.END
     context.user_data['date'] = date
     place = context.user_data['place']
-    time_slots = TimeSlot.objects.filter(date=date,
-                                         place__name=place,
-                                         open=True).order_by('time')
+    user_id = update.effective_user.id
+    usr = User.objects.get(pk=user_id)
+    time_slots = TimeSlot.objects.filter(
+        Q(allowed_groups=usr.group) | Q(allowed_groups__isnull=True),
+        date=date,
+        place__name=place,
+        open=True
+    ).distinct('time').order_by('time')
     keyboard = [[
         KeyboardButton(
             "{} (свободно слотов {})".format(time_slot.time.strftime("%H:%M"),
