@@ -6,6 +6,7 @@ Conversation:
  write: О[о]тпиши меня or О[о]тмени запись.
  Then follow it's instructions.
 """
+import random
 from django.core.management.base import BaseCommand
 
 from telegram import ReplyKeyboardRemove
@@ -43,6 +44,28 @@ from time_chart.management.commands.user_handlers import (
 )
 
 
+SMILEYS = [
+    '\U0001F970', '\U0001F60D', '\U0001F929', '\U0001F618', '\U0001F617',
+    '\U0000263A', '\U0001F61A', '\U0001F619', '\U0001F60A', '\U0001F48B',
+    '\U0001F48C', '\U0001F498', '\U0001F49D', '\U0001F496', '\U0001F497',
+    '\U0001F493', '\U0001F49E', '\U0001F495', '\U0001F49F', '\U00002763',
+    '\U0001F494', '\U00002764', '\U0001F9E1', '\U0001F49B', '\U0001F49A',
+    '\U0001F499', '\U0001F49C', '\U0001F90E', '\U0001F5A4',
+]
+
+RAND_RESPONSES = [
+    'Ооо, спасибо! Я польщен.',
+    'Очень мило.',
+    'Хватит этих соплей! Мы тут в моточатике.',
+    'Блин, я же бот!'
+    '\U00002764',
+    '\U0001F494',
+    '\U0001F48B',
+    '\U0001F970',
+    '\U0001F618',
+]
+
+
 def error(update, context):
     """Log Errors caused by Updates."""
     bot = context.bot
@@ -62,6 +85,12 @@ def end_conversation(update, context):
 
 def unknown(update, context):
     bot = context.bot
+    msg = update.message.text.strip()
+    for smiley in SMILEYS:
+        if smiley in msg:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text=random.choice(RAND_RESPONSES))
+            return
     logger.info("User {} {} typed: {}".format(update.effective_user.id,
                                               update.effective_user.username,
                                               update.message.text))
