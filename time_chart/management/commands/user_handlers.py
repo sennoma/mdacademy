@@ -192,13 +192,17 @@ def ask_date(update, context):
         start_date = dt.date.today() + dt.timedelta(days=1)
     user_id = update.effective_user.id
     usr = User.objects.get(pk=user_id)
-    time_slots = TimeSlot.objects.annotate(people_count=Count('people')).filter(
+    qs = TimeSlot.objects.annotate(people_count=Count('people')).filter(
         Q(allowed_groups=usr.group) | Q(allowed_groups__isnull=True),
         open=True,
         date__gt=start_date,
         place__name=msg,
         limit__gt=F('people_count')
-    ).distinct('date').order_by('date')
+    ).order_by('date')
+    time_slots = {}
+    for ts in qs:
+        time_slots[ts.date] = ts
+    time_slots = time_slots.values()
     if not time_slots:
         bot.send_message(chat_id=update.message.chat_id,
                          text="Нету открытых дат для записи.",
@@ -262,13 +266,17 @@ def ask_time(update, context):
     place = context.user_data['place']
     user_id = update.effective_user.id
     usr = User.objects.get(pk=user_id)
-    time_slots = TimeSlot.objects.annotate(people_count=Count('people')).filter(
+    qs = TimeSlot.objects.annotate(people_count=Count('people')).filter(
         Q(allowed_groups=usr.group) | Q(allowed_groups__isnull=True),
         date=date,
         place__name=place,
         open=True,
         limit__gt=F('people_count')
-    ).distinct('time').order_by('time')
+    ).order_by('time')
+    time_slots = {}
+    for ts in qs:
+        time_slots[ts.date] = ts
+    time_slots = time_slots.values()
     keyboard = [[
         KeyboardButton(
             "{} (свободно слотов {})".format(time_slot.time.strftime("%H:%M"),
