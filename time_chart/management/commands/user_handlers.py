@@ -275,7 +275,7 @@ def ask_time(update, context):
     ).order_by('time')
     time_slots = {}
     for ts in qs:
-        time_slots[ts.date] = ts
+        time_slots[ts.time] = ts
     time_slots = time_slots.values()
     keyboard = [[
         KeyboardButton(
