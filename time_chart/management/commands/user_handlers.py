@@ -31,7 +31,7 @@ from time_chart.management.commands.tools import (
 
 def is_past_19():
     """Is current time past 19:00 (UTC+3)"""
-    if dt.datetime.now().time().hour > 16:
+    if dt.datetime.utcnow().time().hour >= 16:
         return True
     return False
 
