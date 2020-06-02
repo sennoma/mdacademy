@@ -30,7 +30,7 @@ class DefineScheduleForm(forms.Form):
 
     groups = forms.ModelMultipleChoiceField(
         widget=forms.CheckboxSelectMultiple(),
-        queryset=Group.objects.all(),
+        queryset=Group.objects.filter(is_active=True).all(),
         required=False
     )
 
