@@ -7,6 +7,7 @@ from telegram import (
     InlineKeyboardButton,
 )
 from telegram.ext import ConversationHandler
+from telegram.parsemode import ParseMode
 
 from time_chart.models import Group, User, Place, TimeSlot
 
@@ -126,9 +127,10 @@ def store_last_name(update, context):
     usr = User.objects.get(pk=user_id)
     bot.send_message(chat_id=update.message.chat_id,
                      text=f"Твоя фамилия {usr.last_name} и ты из группы {usr.group.name}, "
-                          f"верно? Если нет, нажми /start и измени данные. Если все верно, "
-                          f"то дождись уведомления о начале записи на занятия. Напоминаю, "
-                          f"что я тебя уже запомнил и заново вводить свою фамилию больше не понадобится.")
+                          f"верно? Если нет, нажми /start и измени данные. Если все верно, то попробуй написать мне"
+                          f" первую команду: _запиши меня_. Напоминаю, "
+                          f"что я тебя уже запомнил и заново вводить свою фамилию больше не понадобится.",
+                     parse_mode=ParseMode.MARKDOWN)
     return ConversationHandler.END
 
 
