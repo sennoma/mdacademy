@@ -62,7 +62,8 @@ def start_cmd(update, context):
                           "И я предложу выбрать из тех дат, которые остались свободными. "
                           "Удалить запись можно написав мне \"Отпиши меня\" или \"Отмени запись\". "
                           "Если остались вопросы, напиши @mdmotomama личное сообщение. Если нет, "
-                          "то подтверди, что ты всё прочитал и понял командой \"Принимаю\"")
+                          "то подтверди, что ты всё прочитал и понял командой _Принимаю_",
+                         parse_mode=ParseMode.MARKDOWN)
 
     return ACCEPT_TERMS_STATE
 
@@ -72,7 +73,9 @@ def accept_terms(update, context):
     accept = update.message.text.strip()
     if "принимаю" not in accept.lower():
         bot.send_message(chat_id=update.message.chat_id,
-                         text="Я немного не понял. Так ты принимаешь условия? Если принимаешь, то напиши мне \"Принимаю\".")
+                         text="Я немного не понял. Так ты принимаешь условия? Если принимаешь, то напиши мне"
+                              " _Принимаю_.",
+                         parse_mode=ParseMode.MARKDOWN)
         return ACCEPT_TERMS_STATE
 
     groups = Group.objects.filter(is_active=True).only('name')
