@@ -45,6 +45,7 @@ class DefineScheduleForm(forms.Form):
         # coerce=dt.time,
         required=False
     )
+    open = forms.BooleanField(initial=True)
 
 
 class DefineScheduleView(FormView):
@@ -67,6 +68,7 @@ class DefineScheduleView(FormView):
             return redirect('/admin/time_chart/timeslot/create-schedule/')
 
         time_slots = []
+        open = form.cleaned_data['open']
         start_date = form.cleaned_data['start_date']
         end_date = form.cleaned_data['end_date']
         if start_date > end_date:
@@ -86,7 +88,7 @@ class DefineScheduleView(FormView):
         for place, date, time in product(form.cleaned_data['place'],
                                          dates,
                                          form.cleaned_data['time']):
-            ts = TimeSlot(place=place, date=date, time=time)
+            ts = TimeSlot(place=place, date=date, time=time, open=open)
             ts.save()
             ts.allowed_groups.set(groups or [])
             time_slots.append(ts)
