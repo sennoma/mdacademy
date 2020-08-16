@@ -7,6 +7,7 @@ import xlsxwriter
 from dal import autocomplete
 from django import forms
 from django.contrib import admin
+from django.db import connection
 from django.db.models import Count
 from django.forms.widgets import TextInput
 from django.http import HttpResponse
@@ -39,8 +40,24 @@ class ScheduleAdmin(admin.AdminSite):
                 self.admin_view(UserAutocomplete.as_view()),
                 name='user-autocomplete',
             ),
+            path(
+                'db-stats/',
+                self.admin_view(self.db_stats_view),
+                name='db-stats',
+            ),
         ]
         return new_urls + urls
+
+    def db_stats_view(self, request):
+        """Temporary technical view to count approximate number of rows in the db"""
+        with connection.cursor() as cursor:
+            query = """
+                    SELECT sum(n_live_tup)
+                    FROM pg_stat_user_tables;
+                    """
+            cursor.execute(query)
+            row = cursor.fetchone()
+        return HttpResponse(row)
 
 
 admin_site = ScheduleAdmin(name='scheduleadmin')
