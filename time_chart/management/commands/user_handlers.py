@@ -45,6 +45,7 @@ def start_cmd(update, context):
     first_name = update.effective_user.first_name
     last_name = update.effective_user.last_name
     usr, _ = User.objects.get_or_create(id=user_id)
+    usr.bot_chat_id = update.message.chat_id
     if nick:
         usr.nick_name = nick or ""
     if first_name:

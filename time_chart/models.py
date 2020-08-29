@@ -1,4 +1,18 @@
+import aiohttp
+import asyncio
+import urllib.parse
+
 from django.db import models
+from model_utils import FieldTracker
+
+from time_chart.management.commands import config
+
+
+async def send_notifications(chat_ids):
+    async with aiohttp.ClientSession() as session:
+        msg = urllib.parse.quote("Для вашей группы расписание открыто для записи на занятия.")
+        for chat_id in chat_ids:
+            await session.get(f'https://api.telegram.org/bot{config.BOT_TOKEN}/sendMessage?chat_id={chat_id}&text={msg}')
 
 
 class Group(models.Model):
@@ -8,8 +22,24 @@ class Group(models.Model):
     week_limit = models.PositiveSmallIntegerField(default=2)
     color = models.CharField(max_length=9, default="#ffffff00")
 
+    tracker = FieldTracker()
+
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.pk and not self.tracker.previous('allow_signup') and self.allow_signup:
+            chat_ids = [u.bot_chat_id for u in self.user_set.all()]
+
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+
+            task = send_notifications(chat_ids)
+            loop.run_until_complete(task)
 
 
 class User(models.Model):
@@ -19,6 +49,7 @@ class User(models.Model):
     first_name = models.CharField(max_length=100, default="", blank=True)
     last_name = models.CharField(max_length=100, default="")
     group = models.ForeignKey(Group, null=True, on_delete=models.SET_NULL)
+    bot_chat_id = models.BigIntegerField(null=True)
 
     def __str__(self):
         return self.last_name or self.nick_name
