@@ -45,7 +45,7 @@ class DefineScheduleForm(forms.Form):
         # coerce=dt.time,
         required=False
     )
-    open = forms.BooleanField(initial=True)
+    open = forms.BooleanField(initial=True, required=False)
 
 
 class DefineScheduleView(FormView):
