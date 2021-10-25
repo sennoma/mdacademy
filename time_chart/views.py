@@ -14,7 +14,17 @@ class UserAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         qs = User.objects.select_related('group')
         if self.q:
-            qs = qs.filter(last_name__istartswith=self.q)
+            q = None
+            try:
+                q = int(self.q)
+            except ValueError:
+                pass
+
+            if q:
+                qs = qs.filter(id=q)
+            else:
+                qs = qs.filter(last_name__istartswith=self.q)
+
         return qs.all()
 
     def get_result_label(self, item):
