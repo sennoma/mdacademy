@@ -47,14 +47,7 @@ class DefineScheduleForm(forms.Form):
     start_date = forms.DateField(widget=forms.SelectDateWidget(), initial=dt.date.today)
     end_date = forms.DateField(widget=forms.SelectDateWidget(), initial=dt.date.today)
 
-    times = (dt.time(i) for i in range(10, 22, 2))
-    TIME_CHOICES = tuple(((t, str(t)) for t in times))
-    time = forms.TypedMultipleChoiceField(
-        choices=TIME_CHOICES,
-        widget=forms.CheckboxSelectMultiple(),
-        # coerce=dt.time,
-        required=False
-    )
+    time = forms.TimeField(widget=forms.TimeInput(), required=True)
     open = forms.BooleanField(initial=True, required=False)
 
 
@@ -95,14 +88,12 @@ class DefineScheduleView(FormView):
             dates.append(date)
             date += dt.timedelta(days=1)
         groups = form.cleaned_data['groups']
-        for place, date, time in product(form.cleaned_data['place'],
-                                         dates,
-                                         form.cleaned_data['time']):
+        time = form.cleaned_data['time']
+        for place, date in product(form.cleaned_data['place'], dates):
             ts = TimeSlot(place=place, date=date, time=time, open=open)
             ts.save()
             ts.allowed_groups.set(groups or [])
             time_slots.append(ts)
             ts.save()
-        messages.add_message(self.request, messages.WARNING,
-                             "TimeSlots are created")
+        messages.add_message(self.request, messages.WARNING, "TimeSlots are created")
         return redirect('/admin/time_chart/timeslot')
