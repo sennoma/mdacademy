@@ -52,7 +52,10 @@ class User(models.Model):
     bot_chat_id = models.BigIntegerField(null=True)
 
     def __str__(self):
-        return self.last_name or self.nick_name
+        if self.last_name or self.first_name:
+            return f'{self.last_name} {self.first_name}'
+        else:
+            return self.nick_name
 
 
 # *********** Time Schedule models ***************************

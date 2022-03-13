@@ -28,7 +28,7 @@ class UserAutocomplete(autocomplete.Select2QuerySetView):
         return qs.all()
 
     def get_result_label(self, item):
-        return f"{item.last_name} ({item.group.name})"
+        return f"{item.last_name} {item.first_name} ({item.group.name})"
 
 
 class DefineScheduleForm(forms.Form):
