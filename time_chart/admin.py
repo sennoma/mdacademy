@@ -69,6 +69,8 @@ class UserAdmin(admin.ModelAdmin):
             return obj.group.name
         return ''
 
+    group_name.admin_order_field = "group__name"
+
 
 class TimeSlotForm(forms.ModelForm):
     class Meta:
