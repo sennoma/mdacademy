@@ -412,7 +412,7 @@ def unsubscribe(update, context):
             return ConversationHandler.END
         if date == (dt.date.today() + dt.timedelta(days=1)) and is_past_19():
             bot.send_message(chat_id=update.message.chat_id,
-                             text="Нельзя отменять запись на завтра после 19:00.",
+                             text="Нельзя отменять запись на завтра после 19:00. Напиши администратору.",
                              reply_markup=ReplyKeyboardRemove())
             return ConversationHandler.END
 
