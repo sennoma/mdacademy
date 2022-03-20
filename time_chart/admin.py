@@ -125,7 +125,8 @@ class TimeSlotAdmin(admin.ModelAdmin):
         else:
             qs = queryset.select_related().all()
 
-        times = list(dict.fromkeys([time_slot.time.strftime('%H:%M') for time_slot in qs]))
+        times = list(set([time_slot.time.strftime('%H:%M') for time_slot in qs]))
+        times.sort()
 
         people = set([u for t in qs for u in t.people.all()])
         user_count = User.objects.filter(
