@@ -14,7 +14,6 @@ from django.http import HttpResponse
 from django.urls import path
 
 from time_chart.management.commands.config import (
-    CLASSES_HOURS,
     DATE_FORMAT,
     WEEKDAYS,
 )
@@ -71,7 +70,6 @@ class UserAdmin(admin.ModelAdmin):
 
     group_name.admin_order_field = "group__name"
 
-
 class TimeSlotForm(forms.ModelForm):
     class Meta:
         model = TimeSlot
@@ -127,6 +125,8 @@ class TimeSlotAdmin(admin.ModelAdmin):
         else:
             qs = queryset.select_related().all()
 
+        times = set([time_slot.time.strftime('%H:%M') for time_slot in qs])
+
         people = set([u for t in qs for u in t.people.all()])
         user_count = User.objects.filter(
             id__in=[p.id for p in people],
@@ -163,7 +163,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
                 row += 1
                 # write time slots
                 col = 1
-                for time in CLASSES_HOURS:
+                for time in times:
                     worksheet.write(row, col, time)
                     # logger.debug("writing classes row")
                     col += 1
@@ -173,7 +173,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
                     string = f"{line[3]} {line[4]} ({line[5]})" if add_count else f"{line[3]} {line[4]}"
                     students_lists[line[2]].append((string, line[6]))  # append cell text and bg color
                 lines = []
-                for time in CLASSES_HOURS:
+                for time in times:
                     lines.append(students_lists[time])
                 for line in zip_longest(*lines, fillvalue=("", "")):
                     col = 1
