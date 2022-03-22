@@ -129,6 +129,9 @@ class TimeSlotAdmin(admin.ModelAdmin):
         times.sort()
 
         people = set([u for t in qs for u in t.people.all()])
+
+        column_width = max([len(str(p.group)) + len(p.last_name) + len(p.first_name) + 4 for p in people])
+
         user_count = User.objects.filter(
             id__in=[p.id for p in people],
             timeslot__date__lt=dt.date.today()
@@ -151,6 +154,8 @@ class TimeSlotAdmin(admin.ModelAdmin):
                 'align': 'center',
                 'bold': True,
             })
+            merge_format.set_border()
+
             worksheet = workbook.add_worksheet()
             row = 0
             for key in sorted(records_by_date_place.keys()):
@@ -160,12 +165,16 @@ class TimeSlotAdmin(admin.ModelAdmin):
                 date = dt.datetime.strptime(key[0], DATE_FORMAT).date()
                 day = WEEKDAYS[date.weekday()]
                 place = key[1]
-                worksheet.merge_range(row, 1, row, 4, f"{day}, {date}, {place}", merge_format)
+                worksheet.merge_range(row, 1, row, len(times), f"{day}, {date}, {place}", merge_format)
+                worksheet.set_column(1, len(times), column_width)
                 row += 1
                 # write time slots
                 col = 1
                 for time in times:
-                    worksheet.write(row, col, time)
+                    cell_format = workbook.add_format()
+                    cell_format.set_bold()
+                    cell_format.set_border()
+                    worksheet.write(row, col, time, cell_format)
                     # logger.debug("writing classes row")
                     col += 1
                 row += 1
@@ -182,9 +191,12 @@ class TimeSlotAdmin(admin.ModelAdmin):
                         if color:
                             cell_format = workbook.add_format()
                             cell_format.set_bg_color(color)
+                            cell_format.set_border()
                             worksheet.write(row, col, val, cell_format)
                         else:
-                            worksheet.write(row, col, val)
+                            cell_format = workbook.add_format()
+                            cell_format.set_border()
+                            worksheet.write(row, col, val, cell_format)
                         # logger.debug("writing data row")
                         col += 1
                     row += 1
