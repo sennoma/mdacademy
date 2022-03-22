@@ -130,7 +130,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
 
         people = set([u for t in qs for u in t.people.all()])
 
-        column_width = max([len(str(p.group)) + len(p.last_name) + len(p.first_name) + 4 for p in people])
+        column_width = max([len(str(p.group)) + len(p.last_name) + 4 for p in people])
 
         user_count = User.objects.filter(
             id__in=[p.id for p in people],
