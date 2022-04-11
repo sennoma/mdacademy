@@ -56,6 +56,7 @@ class DefineScheduleForm(forms.Form):
         required=False
     )
     open = forms.BooleanField(initial=True, required=False)
+    limit = forms.IntegerField(required=True)
 
 
 class DefineScheduleView(FormView):
@@ -81,6 +82,7 @@ class DefineScheduleView(FormView):
         open = form.cleaned_data['open']
         start_date = form.cleaned_data['start_date']
         end_date = form.cleaned_data['end_date']
+        limit = form.cleaned_data['limit']
         if start_date > end_date:
             messages.add_message(self.request, messages.WARNING,
                                  "end_date should be greater than start_date")
@@ -98,7 +100,7 @@ class DefineScheduleView(FormView):
         for place, date, time in product(form.cleaned_data['place'],
                                          dates,
                                          form.cleaned_data['time']):
-            ts = TimeSlot(place=place, date=date, time=time, open=open)
+            ts = TimeSlot(place=place, date=date, time=time, open=open, limit=limit)
             ts.save()
             ts.allowed_groups.set(groups or [])
             time_slots.append(ts)
