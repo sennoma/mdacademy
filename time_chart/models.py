@@ -43,7 +43,7 @@ class Group(models.Model):
 
 
 class User(models.Model):
-    id = models.PositiveIntegerField(primary_key=True)
+    id = models.PositiveBigIntegerField(primary_key=True)
     is_active = models.BooleanField(default=True)
     nick_name = models.CharField(max_length=100, default="", blank=True)
     first_name = models.CharField(max_length=100, default="", blank=True)
