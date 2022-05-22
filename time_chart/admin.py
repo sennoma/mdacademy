@@ -82,6 +82,8 @@ class TimeSlotForm(forms.ModelForm):
 class TimeSlotAdmin(admin.ModelAdmin):
     form = TimeSlotForm
     actions = ["get_complete_schedule", "get_current_schedule", "mark_closed", "mark_open"]
+    ordering = ("place_id", "date", "time")
+    list_filter = ('place_id',)
 
     def get_queryset(self, request):
         """
