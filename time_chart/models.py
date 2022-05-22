@@ -88,4 +88,4 @@ class TimeSlot(models.Model):
     allowed_groups = models.ManyToManyField(Group, default=None, blank=True)
 
     def __str__(self):
-        return f"{self.date} {self.time} ({self.place})"
+        return f"{self.place} - {self.date} {self.time} "
