@@ -62,6 +62,7 @@ class GroupAdmin(admin.ModelAdmin):
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ('id', 'nick_name', 'first_name', 'last_name', 'is_active', 'group_name')
+    list_filter = ('group_id',)
 
     def group_name(self, obj):
         if obj.group:
