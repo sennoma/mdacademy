@@ -143,10 +143,17 @@ def ask_place(update, context):
     user_id = update.effective_user.id
     bot = context.bot
     usr = User.objects.get(pk=user_id)
+
     signup_allowed = usr.group.allow_signup
     if not signup_allowed:
         bot.send_message(chat_id=update.message.chat_id,
                          text="Сейчас запись на занятия закрыта для вашей группы.",
+                         reply_markup=ReplyKeyboardRemove())
+        return ConversationHandler.END
+
+    if not usr.is_active:
+        bot.send_message(chat_id=update.message.chat_id,
+                         text="Для вас запись закрыта. Обратитесь к администратору.",
                          reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
 
