@@ -30,7 +30,7 @@ class Group(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.pk and not self.tracker.previous('allow_signup') and self.allow_signup:
-            chat_ids = [u.bot_chat_id for u in self.user_set.all()]
+            chat_ids = [u.bot_chat_id for u in self.user_set.filter(is_active=True).all()]
 
             try:
                 loop = asyncio.get_event_loop()
