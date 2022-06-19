@@ -109,7 +109,7 @@ class UserAdmin(admin.ModelAdmin):
 
             for user_index, user in enumerate(users):
 
-                user_slots = list(TimeSlot.objects.filter(people__id=user.id))
+                user_slots = list(TimeSlot.objects.filter(people__id=user.id).order_by('date'))
 
                 days = []
                 for slot_index, slot in enumerate(user_slots):
