@@ -90,9 +90,9 @@ class UserAdmin(admin.ModelAdmin):
 
         dates = [t.date for t in slots]
 
-        year = min(dates).isocalendar().year
-        min_week = min(dates).isocalendar().week
-        max_week = max(dates).isocalendar().week
+        year = min(dates).isocalendar()[0]
+        min_week = min(dates).isocalendar()[1]
+        max_week = max(dates).isocalendar()[1]
         dates_count = (max(dates) - min(dates)).days
 
         worksheet = workbook.add_worksheet()
@@ -102,9 +102,8 @@ class UserAdmin(admin.ModelAdmin):
 
         for week_index, week in enumerate(range(min_week, max_week + 1)):
 
-            week_begin = dt.date.fromisocalendar(year=year, week=week, day=1)
-            week_end = dt.date.fromisocalendar(year=year, week=week, day=7)
-
+            week_begin = dt.datetime.strptime(f'{year} {week} 1', '%Y %W %w')
+            week_end = dt.datetime.strptime(f'{year} {week} 0', '%Y %W %w')
             week_header = f'{week_begin.month}.{week_begin.day}-{week_end.month}.{week_end.day}'
             worksheet.write(0, 1 + week_index, week_header)
 
