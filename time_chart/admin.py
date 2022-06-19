@@ -16,6 +16,7 @@ from django.urls import path
 from time_chart.management.commands.config import (
     DATE_FORMAT,
     WEEKDAYS,
+    WEEKDAYS_SHORT
 )
 from time_chart.management.commands.tools import logger
 from time_chart.models import Group, Place, TimeSlot, User
@@ -62,7 +63,65 @@ class GroupAdmin(admin.ModelAdmin):
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ('id', 'nick_name', 'first_name', 'last_name', 'is_active', 'group_name')
+    actions = ["get_user_report"]
     list_filter = ('group_id',)
+
+    def get_user_report(self, request, queryset):
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=schedule.xlsx'
+        xlsx_data = self.make_report(queryset)
+        response.write(xlsx_data)
+        return response
+
+    def make_report(self, queryset, complete=False):
+
+        users = User.objects.select_related().all()
+
+        groups = list(set([user.group.name for user in users]))
+        groups.sort()
+
+        output = io.BytesIO()
+        workbook = xlsxwriter.Workbook(output)
+
+        slots=[]
+
+        for user in users:
+            slots += list(TimeSlot.objects.filter(people__id=user.id))
+
+        dates = [t.date for t in slots]
+
+        year = min(dates).isocalendar().year
+        min_week = min(dates).isocalendar().week
+        max_week = max(dates).isocalendar().week
+        dates_count = (max(dates) - min(dates)).days
+
+        worksheet = workbook.add_worksheet()
+
+        for user_index, user in enumerate(users):
+            worksheet.write(1 + user_index, 0, user.last_name)
+
+        for week_index, week in enumerate(range(min_week, max_week + 1)):
+
+            week_begin = dt.date.fromisocalendar(year=year, week=week, day=1)
+            week_end = dt.date.fromisocalendar(year=year, week=week, day=7)
+
+            week_header = f'{week_begin.month}.{week_begin.day}-{week_end.month}.{week_end.day}'
+            worksheet.write(0, 1 + week_index, week_header)
+
+            for user_index, user in enumerate(users):
+
+                user_slots = list(TimeSlot.objects.filter(people__id=user.id))
+
+                days = []
+                for slot_index, slot in enumerate(user_slots):
+                    if slot.date.isocalendar().week == week:
+                        days.append(WEEKDAYS_SHORT[slot.date.weekday()])
+
+                worksheet.write(1 + user_index, 1 + week_index, ', '.join(days))
+
+        workbook.close()
+
+        return output.getvalue()
 
     def group_name(self, obj):
         if obj.group:
