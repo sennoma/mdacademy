@@ -75,7 +75,7 @@ class UserAdmin(admin.ModelAdmin):
 
     def make_report(self, queryset, complete=False):
 
-        users = User.objects.select_related().all()
+        users = queryset.select_related().all()
 
         groups = list(set([user.group.name for user in users]))
         groups.sort()
