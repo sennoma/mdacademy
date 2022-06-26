@@ -77,15 +77,15 @@ class TimeSlot(models.Model):
                 name='time_slot_place_date_time_key')
         ]
 
-    place = models.ForeignKey(Place, null=True, on_delete=models.SET_NULL)
+    place = models.ForeignKey(Place, null=True, on_delete=models.SET_NULL, limit_choices_to={'is_active': True})
     date = models.DateField()
     time = models.TimeField()
     open = models.BooleanField(default=False)
 
-    people = models.ManyToManyField(User, blank=True)
+    people = models.ManyToManyField(User, blank=True, limit_choices_to={'is_active': True})
     limit = models.PositiveSmallIntegerField(default=8)
 
-    allowed_groups = models.ManyToManyField(Group, default=None, blank=True)
+    allowed_groups = models.ManyToManyField(Group, default=None, blank=True, limit_choices_to={'is_active': True})
 
     def __str__(self):
         return f"{self.place} - {self.date} {self.time} "
