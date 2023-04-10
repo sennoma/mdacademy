@@ -88,9 +88,10 @@ class UserAdmin(admin.ModelAdmin):
         for user in users:
             slots += list(TimeSlot.objects.filter(people__id=user.id))
 
-        dates = [t.date for t in slots]
+        year = dt.date.today().year
 
-        year = min(dates).isocalendar()[0]
+        dates = [t.date for t in slots if t.date.isocalendar()[0] == year]
+
         min_week = min(dates).isocalendar()[1]
         max_week = max(dates).isocalendar()[1]
         dates_count = (max(dates) - min(dates)).days
