@@ -88,24 +88,21 @@ class UserAdmin(admin.ModelAdmin):
         for user in users:
             slots += list(TimeSlot.objects.filter(people__id=user.id))
 
-        year = dt.date.today().year
-
-        dates = [t.date for t in slots if t.date.isocalendar()[0] == year]
-
-        min_week = min(dates).isocalendar()[1]
-        max_week = max(dates).isocalendar()[1]
-        dates_count = (max(dates) - min(dates)).days
+        dates = [slot.date for slot in slots]
+        weeks = [(date.isocalendar()[0], date.isocalendar()[1]) for date in dates]
+        weeks = list(set(weeks))
+        weeks.sort()
 
         worksheet = workbook.add_worksheet()
 
         for user_index, user in enumerate(users):
             worksheet.write(1 + user_index, 0, user.last_name)
 
-        for week_index, week in enumerate(range(min_week, max_week + 1)):
+        for week_index, (year, week) in enumerate(weeks):
 
             week_begin = dt.datetime.strptime(f'{year} {week} 1', '%Y %W %w')
             week_end = dt.datetime.strptime(f'{year} {week} 0', '%Y %W %w')
-            week_header = f'{week_begin.month}.{week_begin.day}-{week_end.month}.{week_end.day}'
+            week_header = f'{year} {week_begin.month}.{week_begin.day}-{week_end.month}.{week_end.day}'
             worksheet.write(0, 1 + week_index, week_header)
 
             for user_index, user in enumerate(users):
