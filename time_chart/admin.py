@@ -83,6 +83,9 @@ class UserAdmin(admin.ModelAdmin):
         output = io.BytesIO()
         workbook = xlsxwriter.Workbook(output)
 
+        places = list(Place.objects.filter(is_active=True))
+        places_count = len(places)
+
         slots=[]
 
         for user in users:
@@ -95,26 +98,44 @@ class UserAdmin(admin.ModelAdmin):
 
         worksheet = workbook.add_worksheet()
 
+        merge_format = workbook.add_format({
+            'align': 'center',
+            'bold': True,
+        })
+        merge_format.set_border()
+
         for user_index, user in enumerate(users):
-            worksheet.write(1 + user_index, 0, user.last_name)
+            worksheet.write(2 + user_index, 0, user.last_name)
 
         for week_index, (year, week) in enumerate(weeks):
 
             week_begin = dt.datetime.strptime(f'{year} {week} 1', '%Y %W %w')
             week_end = dt.datetime.strptime(f'{year} {week} 0', '%Y %W %w')
             week_header = f'{year} {week_begin.month}.{week_begin.day}-{week_end.month}.{week_end.day}'
-            worksheet.write(0, 1 + week_index, week_header)
+
+            worksheet.merge_range(
+                0,
+                1 + week_index * places_count,
+                0,
+                1 + week_index * places_count + (places_count - 1),
+                week_header,
+                merge_format)
+
+            for place_index, place in enumerate(places):
+                worksheet.write(1,  1 + week_index * places_count + place_index, place.name)
 
             for user_index, user in enumerate(users):
 
-                user_slots = list(TimeSlot.objects.filter(people__id=user.id).order_by('date'))
+                for place_index, place in enumerate(places):
 
-                days = []
-                for slot_index, slot in enumerate(user_slots):
-                    if slot.date.isocalendar()[1] == week:
-                        days.append(WEEKDAYS_SHORT[slot.date.weekday()])
+                    user_slots = list(TimeSlot.objects.filter(people__id=user.id, place_id=place.id).order_by('date'))
 
-                worksheet.write(1 + user_index, 1 + week_index, ', '.join(days))
+                    days = []
+                    for slot_index, slot in enumerate(user_slots):
+                        if slot.date.isocalendar()[1] == week:
+                            days.append(WEEKDAYS_SHORT[slot.date.weekday()])
+
+                    worksheet.write(2 + user_index, 1 + week_index * places_count + place_index, ', '.join(days))
 
         workbook.close()
 
