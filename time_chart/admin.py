@@ -132,7 +132,7 @@ class UserAdmin(admin.ModelAdmin):
 
                     days = []
                     for slot_index, slot in enumerate(user_slots):
-                        if slot.date.isocalendar()[1] == week:
+                        if slot.date.isocalendar()[0] == year and slot.date.isocalendar()[1] == week :
                             days.append(WEEKDAYS_SHORT[slot.date.weekday()])
 
                     worksheet.write(2 + user_index, 1 + week_index * places_count + place_index, ', '.join(days))
