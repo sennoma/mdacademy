@@ -245,7 +245,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
                 date = dt.datetime.strptime(key[0], DATE_FORMAT).date()
                 day = WEEKDAYS[date.weekday()]
                 place = key[1]
-                worksheet.merge_range(row, 1, row, len(times), f"{day}, {date}, {place}", merge_format)
+                worksheet.merge_range(row, 1, row, len(times), f'{day}, {date.strftime("%d-%m-%Y")}, {place}', merge_format)
                 worksheet.set_column(1, len(times), column_width)
                 row += 1
                 # write time slots
