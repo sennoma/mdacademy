@@ -98,11 +98,10 @@ class UserAdmin(admin.ModelAdmin):
 
         worksheet = workbook.add_worksheet()
 
-        merge_format = workbook.add_format({
+        date_format = workbook.add_format({
             'align': 'center',
             'bold': True,
         })
-        merge_format.set_border()
 
         for user_index, user in enumerate(users):
             worksheet.write(2 + user_index, 0, user.last_name)
@@ -113,13 +112,16 @@ class UserAdmin(admin.ModelAdmin):
             week_end = dt.datetime.strptime(f'{year} {week} 0', '%Y %W %w')
             week_header = f'{year} {week_begin.month}.{week_begin.day}-{week_end.month}.{week_end.day}'
 
-            worksheet.merge_range(
-                0,
-                1 + week_index * places_count,
-                0,
-                1 + week_index * places_count + (places_count - 1),
-                week_header,
-                merge_format)
+            if places_count == 1:
+                worksheet.write(0,  1 + week_index, week_header, date_format)
+            else:
+                worksheet.merge_range(
+                    0,
+                    1 + week_index * places_count,
+                    0,
+                    1 + week_index * places_count + (places_count - 1),
+                    week_header,
+                    date_format)
 
             for place_index, place in enumerate(places):
                 worksheet.write(1,  1 + week_index * places_count + place_index, place.name)
